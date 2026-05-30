@@ -1,7 +1,9 @@
 # ❖ SVG Pattern Generator
 
-[![CI](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/ci.yml/badge.status)](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/ci.yml)
-[![Deploy to GitHub Pages](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/deploy.yml/badge.status)](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/deploy.yml)
+**[View Live Demo](https://ratpi-studio.github.io/svg-pattern-generator/)**
+
+[![CI](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/ci.yml/badge.status)](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/ci.yml)
+[![Deploy to GitHub Pages](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/deploy.yml/badge.status)](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An interactive, web-based tool for creating, customizing, and exporting beautiful geometric vector patterns. Built with React, TypeScript, and powered by [VitePlus](https://viteplus.dev/).
@@ -27,9 +29,8 @@ An interactive, web-based tool for creating, customizing, and exporting beautifu
 ### Local Development
 
 1. **Clone the repository**:
-
    ```bash
-   git clone https://github.com/alexissalnikoff/svg-pattern-generator.git
+   git clone https://github.com/ratpi-studio/svg-pattern-generator.git
    cd svg-pattern-generator
    ```
 
