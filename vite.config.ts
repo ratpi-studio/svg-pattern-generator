@@ -4,6 +4,7 @@ import path from "path";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+  base: "./",
   staged: {
     "*": "vp check --fix",
   },

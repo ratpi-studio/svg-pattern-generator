@@ -1,19 +1,80 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# ❖ SVG Pattern Generator
 
-# Run and deploy your AI Studio app
+[![CI](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/ci.yml/badge.status)](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/ci.yml)
+[![Deploy to GitHub Pages](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/deploy.yml/badge.status)](https://github.com/alexissalnikoff/svg-pattern-generator/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This contains everything you need to run your app locally.
+An interactive, web-based tool for creating, customizing, and exporting beautiful geometric vector patterns. Built with React, TypeScript, and powered by [VitePlus](https://viteplus.dev/).
 
-View your app in AI Studio: https://ai.studio/apps/3e320c9d-c23a-4104-a9cd-255acf5eb878
+## ✨ Features
 
-## Run Locally
+- **9 Generative Algorithms**: Topography, Rosette, Mandala, Fractal, Tessellation, Grid, Radial, Symmetry, and Spirograph.
+- **Real-time Customization**: Adjust density, symmetry, complexity, stroke width, and spacing with live preview.
+- **Export Options**:
+  - Copy SVG source code to clipboard.
+  - Download high-resolution `.svg` (vector) files.
+  - Download `.png` (raster) files.
+- **Presets**: Choose from built-in demo presets or save your own custom designs.
+- **Responsive Workspace**: Works seamlessly across different screen sizes.
 
-**Prerequisites:** Node.js
+## 🚀 Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Prerequisites
+
+- Node.js 20+
+- [pnpm](https://pnpm.io/)
+
+### Local Development
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/alexissalnikoff/svg-pattern-generator.git
+   cd svg-pattern-generator
+   ```
+
+2. **Install dependencies**:
+   Using VitePlus (recommended):
+
+   ```bash
+   vp install
+   ```
+
+3. **Start the development server**:
+
+   ```bash
+   vp dev
+   ```
+
+   The app will be available at `http://localhost:3000`.
+
+4. **Run checks**:
+
+   ```bash
+   vp check
+   ```
+
+5. **Build for production**:
+   ```bash
+   vp build
+   ```
+
+## 🛠 Built With
+
+- [React 19](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS 4](https://tailwindcss.com/)
+- [Lucide React](https://lucide.dev/)
+- [VitePlus](https://viteplus.dev/) - The unified toolchain for the web.
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
+
+---
+
+Created with ❤️ for generative art lovers.
