@@ -3,28 +3,20 @@ import { Sparkles, HelpCircle, Feather, CheckCircle2, AlertCircle } from "lucide
 import { PatternSettings, Preset } from "./types";
 import { PatternGenerator } from "./generator";
 import { DEMO_PRESETS } from "./presets";
+import {
+  DEFAULT_PATTERN_SETTINGS,
+  PATTERN_TYPE_OPTIONS,
+  PATTERN_VARIANTS,
+  STROKE_STYLE_OPTIONS,
+  normalizePatternSettings,
+} from "./settings";
 import PatternPreview from "./components/PatternPreview";
 import ControlPanel from "./components/ControlPanel";
 
 const LOCAL_STORAGE_KEY = "svg_pattern_custom_user_presets";
 
-const INITIAL_SETTINGS: PatternSettings = {
-  type: "rosace",
-  repetitions: 12,
-  symmetry: 6,
-  density: 0.6,
-  strokeWidth: 2.0,
-  spacing: 0.25,
-  rotation: 0,
-  scale: 1.0,
-  complexity: 4,
-  seed: 120,
-  canvasSize: 800,
-  inverted: false,
-};
-
 export default function App() {
-  const [settings, setSettings] = useState<PatternSettings>(INITIAL_SETTINGS);
+  const [settings, setSettings] = useState<PatternSettings>(DEFAULT_PATTERN_SETTINGS);
   const [userPresets, setUserPresets] = useState<Preset[]>([]);
   const [notification, setNotification] = useState<{
     message: string;
@@ -37,7 +29,13 @@ export default function App() {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (stored) {
-        setUserPresets(JSON.parse(stored));
+        const parsed = JSON.parse(stored) as Preset[];
+        setUserPresets(
+          parsed.map((preset) => ({
+            ...preset,
+            settings: normalizePatternSettings(preset.settings),
+          })),
+        );
       }
     } catch (e) {
       console.error("Failed to parse cached presets:", e);
@@ -61,12 +59,12 @@ export default function App() {
 
   // Modify individual parameters
   const handleSettingsChange = (updated: Partial<PatternSettings>) => {
-    setSettings((prev) => ({ ...prev, ...updated }));
+    setSettings((prev) => normalizePatternSettings({ ...prev, ...updated }));
   };
 
   // Completely reset settings back to default parameters
   const handleResetSettings = () => {
-    setSettings(INITIAL_SETTINGS);
+    setSettings(DEFAULT_PATTERN_SETTINGS);
     triggerNotification("Settings reset to standard values.", "info");
   };
 
@@ -74,18 +72,11 @@ export default function App() {
   const handleRandomizeAll = () => {
     const randomSeeds = Math.floor(Math.random() * 9999) + 1;
     // Keep parameters balanced so randomization generates visually elegant motifs (guarantees quality)
-    const types: PatternSettings["type"][] = [
-      "rosace",
-      "mandala",
-      "fractal",
-      "tessellation",
-      "grid",
-      "radial",
-      "symmetry",
-      "generative",
-      "topography",
-    ];
+    const types: PatternSettings["type"][] = PATTERN_TYPE_OPTIONS.map((option) => option.type);
     const chosenType = types[Math.floor(Math.random() * types.length)];
+    const variants = PATTERN_VARIANTS[chosenType];
+    const chosenVariant = variants[Math.floor(Math.random() * variants.length)].id;
+    const strokeStyles = STROKE_STYLE_OPTIONS.map((option) => option.value);
 
     setSettings({
       type: chosenType,
@@ -97,6 +88,10 @@ export default function App() {
       rotation: Math.floor(Math.random() * 180),
       scale: parseFloat((Math.random() * 0.4 + 0.8).toFixed(2)),
       complexity: Math.floor(Math.random() * 5) + 3,
+      variant: chosenVariant,
+      variation: parseFloat(Math.random().toFixed(2)),
+      phase: Math.floor(Math.random() * 360),
+      strokeStyle: strokeStyles[Math.floor(Math.random() * strokeStyles.length)],
       seed: randomSeeds,
       canvasSize: 800,
       inverted: Math.random() > 0.65, // Randomly invert contrast
@@ -130,7 +125,7 @@ export default function App() {
 
   // Load a preset
   const handleLoadPreset = (preset: Preset) => {
-    setSettings(preset.settings);
+    setSettings(normalizePatternSettings(preset.settings));
     triggerNotification(`Preset "${preset.name}" loaded!`);
   };
 
@@ -164,7 +159,7 @@ export default function App() {
                   SVG Pattern Generator
                 </h1>
                 <span className="text-[10px] bg-black text-white px-2 py-0.5 rounded-full font-mono">
-                  v1.3
+                  v1.4
                 </span>
               </div>
               <p className="text-xs text-gray-500 font-medium">
@@ -206,8 +201,8 @@ export default function App() {
                   Choose Your Algorithm
                 </h4>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  Choose from 9 distinct mathematical models, including the all-new{" "}
-                  <strong>Topography</strong> contour curves and river currents.
+                  Choose from 12 mathematical models, including guilloche engraving, woven bands,
+                  lattice networks, and organic topography.
                 </p>
               </div>
             </div>
@@ -221,7 +216,7 @@ export default function App() {
                   Adjust the Sliders
                 </h4>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  Control width, symmetry, scale, and density parameters to morph your generative
+                  Control structure, form, stroke style, variation, and phase to morph your vector
                   artwork live on your screen.
                 </p>
               </div>

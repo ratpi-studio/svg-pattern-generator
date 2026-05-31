@@ -1,17 +1,35 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Sliders,
-  Sparkles,
-  RefreshCw,
-  Save,
-  Trash2,
   Bookmark,
+  ChevronRight,
+  CircleDot,
+  Flower2,
+  Grid3X3,
+  Hexagon,
+  Landmark,
+  Mountain,
+  Orbit,
+  Radar,
+  RefreshCw,
+  Rows3,
+  Save,
+  Shapes,
+  Shield,
+  Sliders,
+  Snowflake,
+  Sparkles,
+  Trash2,
   ToggleLeft,
   ToggleRight,
-  ChevronRight,
-  Shapes,
+  type LucideIcon,
 } from "lucide-react";
-import { PatternSettings, PatternType, Preset } from "../types";
+import { PatternSettings, PatternType, Preset, StrokeStyle } from "../types";
+import {
+  PATTERN_TYPE_OPTIONS,
+  STROKE_STYLE_OPTIONS,
+  getDefaultVariant,
+  getPatternVariantOptions,
+} from "../settings";
 
 interface ControlPanelProps {
   settings: PatternSettings;
@@ -23,6 +41,64 @@ interface ControlPanelProps {
   userPresets: Preset[];
   onLoadPreset: (preset: Preset) => void;
   onDeletePreset: (id: string) => void;
+}
+
+interface SliderControlProps {
+  label: string;
+  value: number;
+  display: string;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+}
+
+const PATTERN_ICONS: Record<PatternType, LucideIcon> = {
+  topography: Mountain,
+  rosace: Flower2,
+  mandala: CircleDot,
+  fractal: Snowflake,
+  tessellation: Grid3X3,
+  grid: Shapes,
+  radial: Radar,
+  symmetry: Shield,
+  generative: Orbit,
+  guilloche: Landmark,
+  woven: Rows3,
+  lattice: Hexagon,
+};
+
+function SliderControl({ label, value, display, min, max, step, onChange }: SliderControlProps) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex justify-between items-center gap-3 text-xs font-medium">
+        <span className="text-gray-700 truncate">{label}</span>
+        <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm shrink-0">
+          {display}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(parseFloat(event.target.value))}
+        className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
+      />
+    </div>
+  );
+}
+
+function PanelSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-4">
+      <h4 className="font-display font-semibold text-[11px] uppercase tracking-wider text-gray-500">
+        {title}
+      </h4>
+      <div className="flex flex-col gap-4">{children}</div>
+    </section>
+  );
 }
 
 export default function ControlPanel({
@@ -39,34 +115,22 @@ export default function ControlPanel({
   const [newPresetName, setNewPresetName] = useState("");
   const [showSaveForm, setShowSaveForm] = useState(false);
 
-  // High-fidelity pattern types catalog
-  const PATTERN_TYPES: { type: PatternType; label: string; desc: string; icon: string }[] = [
-    { type: "topography", label: "Topography", desc: "Contour curves & organic flows", icon: "〰️" },
-    { type: "rosace", label: "Rosette", desc: "Interlacing loops & petal contours", icon: "❂" },
-    { type: "mandala", label: "Mandala", desc: "Harmonic concentric crowns", icon: "💮" },
-    { type: "fractal", label: "Fractal", desc: "Symmetric branching snowflakes", icon: "❄️" },
-    {
-      type: "tessellation",
-      label: "Tessellation",
-      desc: "Infinite repeating modular patterns",
-      icon: "⚃",
-    },
-    { type: "grid", label: "Grid", desc: "Blueprint & engineering drafting", icon: "⌗" },
-    { type: "radial", label: "Radial", desc: "Emanating lines & optic moirés", icon: "☼" },
-    { type: "symmetry", label: "Symmetry", desc: "Symmetric runes & heraldic shields", icon: "🌟" },
-    { type: "generative", label: "Spirograph", desc: "Orbits & solar harmonics", icon: "🌀" },
-  ];
+  const variantOptions = useMemo(() => getPatternVariantOptions(settings.type), [settings.type]);
 
   const handleSliderChange = (key: keyof PatternSettings, value: number) => {
     onChange({ [key]: value });
   };
 
-  const handleToggleSwap = () => {
-    onChange({ inverted: !settings.inverted });
+  const handlePatternChange = (type: PatternType) => {
+    onChange({ type, variant: getDefaultVariant(type) });
   };
 
-  const handleCreatePreset = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStrokeStyleChange = (strokeStyle: StrokeStyle) => {
+    onChange({ strokeStyle });
+  };
+
+  const handleCreatePreset = (event: React.FormEvent) => {
+    event.preventDefault();
     if (!newPresetName.trim()) return;
     onSavePreset(newPresetName.trim());
     setNewPresetName("");
@@ -74,84 +138,84 @@ export default function ControlPanel({
   };
 
   return (
-    <div className="flex flex-col gap-6 select-none pb-12">
-      {/* 1. SECTOR SELECTOR: THE CORE DESIGN ENGINE */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Shapes size={18} className="text-black" />
-            <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-gray-800">
-              Pattern Style
+    <div className="flex flex-col gap-5 select-none pb-12">
+      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-xs">
+        <div className="flex items-center justify-between mb-4 gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Shapes size={18} className="text-black shrink-0" />
+            <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-gray-800 truncate">
+              Pattern Palette
             </h3>
           </div>
-          <span className="font-mono text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-sm">
-            9 Algorithms
+          <span className="font-mono text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-sm shrink-0">
+            {PATTERN_TYPE_OPTIONS.length} Algorithms
           </span>
         </div>
 
-        {/* Visual responsive grids */}
-        <div className="grid grid-cols-2 gap-2.5">
-          {PATTERN_TYPES.map((item) => {
+        <div className="grid grid-cols-6 gap-2">
+          {PATTERN_TYPE_OPTIONS.map((item) => {
+            const Icon = PATTERN_ICONS[item.type];
             const isSelected = settings.type === item.type;
             return (
               <button
                 key={item.type}
-                onClick={() => onChange({ type: item.type })}
-                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-smooth group relative overflow-hidden ${
+                type="button"
+                onClick={() => handlePatternChange(item.type)}
+                title={`${item.label}: ${item.desc}`}
+                aria-label={item.label}
+                className={`aspect-square rounded-lg border flex items-center justify-center transition-smooth ${
                   isSelected
                     ? "border-black bg-black text-white shadow-sm"
-                    : "border-gray-200/70 bg-gray-50/30 hover:bg-gray-50 hover:border-gray-300 text-gray-700"
+                    : "border-gray-200 bg-gray-50/40 text-gray-600 hover:border-gray-400 hover:bg-white hover:text-black"
                 }`}
               >
-                <div className="flex items-center w-full justify-between mb-1.5">
-                  <span className="text-lg">{item.icon}</span>
-                  {isSelected && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-white relative animate-ping" />
-                  )}
-                </div>
-                <span className="font-semibold text-xs tracking-tight">{item.label}</span>
-                <span
-                  className={`text-[9px] mt-0.5 leading-tight ${isSelected ? "text-gray-300" : "text-gray-400 group-hover:text-gray-500"}`}
-                >
-                  {item.desc}
-                </span>
+                <Icon size={18} strokeWidth={isSelected ? 2.4 : 1.8} />
               </button>
             );
           })}
         </div>
 
-        {/* Contextual instruction tooltips */}
-        {settings.type === "topography" && (
-          <div className="mt-4 p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-start gap-2.5 text-[11px] text-gray-600 leading-relaxed shadow-3xs">
-            <span className="text-lg select-none">💡</span>
-            <div>
-              <p className="font-semibold text-gray-950 mb-0.5">Organic Motif Tip:</p>
-              <p>
-                Set <strong>Symmetry</strong> to an{" "}
-                <strong>Even number ({settings.symmetry % 2 === 0 ? "Active" : "Off"})</strong> to
-                draw <strong className="text-black">nested closed loops and hills</strong>. Set to
-                an <strong>Odd number ({settings.symmetry % 2 !== 0 ? "Active" : "Off"})</strong> to
-                generate <strong className="text-black">flowing river stream waves</strong>.
-              </p>
-            </div>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              Variant
+            </span>
+            <select
+              value={settings.variant}
+              onChange={(event) => onChange({ variant: event.target.value })}
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium focus:outline-hidden focus:border-black focus:bg-white transition-smooth"
+            >
+              {variantOptions.map((variant) => (
+                <option key={variant.id} value={variant.id}>
+                  {variant.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="text-right sm:min-w-28">
+            <span className="block text-[10px] uppercase tracking-wider text-gray-400">Active</span>
+            <span className="block text-xs font-semibold text-gray-900 truncate">
+              {PATTERN_TYPE_OPTIONS.find((item) => item.type === settings.type)?.label}
+            </span>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* 2. DYNAMIC GENERATIVE SEED ROW */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-black" />
-            <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-gray-800">
-              Random Seed Pool
+      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-xs flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles size={18} className="text-black shrink-0" />
+            <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-gray-800 truncate">
+              Seed Pool
             </h3>
           </div>
           <button
+            type="button"
             onClick={onRandomize}
-            className="p-1.5 text-gray-500 hover:text-black hover:bg-gray-100 rounded-md transition-smooth flex items-center gap-1.5 text-xs font-medium"
+            className="p-1.5 text-gray-500 hover:text-black hover:bg-gray-100 rounded-md transition-smooth flex items-center gap-1.5 text-xs font-medium shrink-0"
           >
-            <RefreshCw size={14} className="animate-spin duration-1000" />
+            <RefreshCw size={14} />
             <span>Randomize</span>
           </button>
         </div>
@@ -160,226 +224,189 @@ export default function ControlPanel({
           <input
             type="number"
             value={settings.seed}
-            onChange={(e) => onChange({ seed: Math.max(1, parseInt(e.target.value) || 1) })}
-            className="flex-1 px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono text-sm focus:outline-hidden focus:border-black focus:bg-white transition-smooth"
+            onChange={(event) => onChange({ seed: Math.max(1, parseInt(event.target.value) || 1) })}
+            className="flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm focus:outline-hidden focus:border-black focus:bg-white transition-smooth"
             placeholder="Seed number"
           />
           <button
+            type="button"
             onClick={onRandomize}
-            className="px-4 py-2.5 bg-black hover:bg-gray-800 text-white rounded-xl font-medium text-xs tracking-wider uppercase transition-smooth"
+            className="px-4 py-2.5 bg-black hover:bg-gray-800 text-white rounded-lg font-medium text-xs tracking-wider uppercase transition-smooth shrink-0"
           >
             Regen
           </button>
         </div>
       </div>
 
-      {/* 3. CORE PARAMETRIC SLIDERS */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs flex flex-col gap-6">
-        <div className="flex items-center justify-between pb-2 border-b border-gray-50">
-          <div className="flex items-center gap-2">
-            <Sliders size={18} className="text-black" />
-            <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-gray-800">
+      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-xs flex flex-col gap-6">
+        <div className="flex items-center justify-between pb-2 border-b border-gray-50 gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sliders size={18} className="text-black shrink-0" />
+            <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-gray-800 truncate">
               Drawing Parameters
             </h3>
           </div>
           <button
+            type="button"
             onClick={onReset}
-            className="text-xs text-gray-400 hover:text-black underline transition-smooth"
+            className="text-xs text-gray-400 hover:text-black underline transition-smooth shrink-0"
           >
             Reset
           </button>
         </div>
 
-        {/* Sliders loop list */}
-        <div className="flex flex-col gap-5">
-          {/* REPETITIONS OR MULTIPLIER */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700 flex items-center gap-1">
-                Repetitions / Branches
-                <span className="text-[10px] text-gray-400 font-normal">
-                  ({settings.type === "tessellation" ? "Size" : "Elements"})
-                </span>
-              </span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                {settings.repetitions}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={3}
-              max={100}
-              step={1}
-              value={settings.repetitions}
-              onChange={(e) => handleSliderChange("repetitions", parseInt(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
-            />
-          </div>
+        <PanelSection title="Structure">
+          <SliderControl
+            label="Repetitions / Branches"
+            value={settings.repetitions}
+            display={`${settings.repetitions}`}
+            min={3}
+            max={100}
+            step={1}
+            onChange={(value) => handleSliderChange("repetitions", value)}
+          />
+          <SliderControl
+            label="Symmetry Axes"
+            value={settings.symmetry}
+            display={`x${settings.symmetry}`}
+            min={1}
+            max={32}
+            step={1}
+            onChange={(value) => handleSliderChange("symmetry", value)}
+          />
+          <SliderControl
+            label="Layers / Complexity"
+            value={settings.complexity}
+            display={`${settings.complexity}`}
+            min={1}
+            max={10}
+            step={1}
+            onChange={(value) => handleSliderChange("complexity", value)}
+          />
+        </PanelSection>
 
-          {/* SYMMETRY AXES */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700">Symmetry Axes</span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                x{settings.symmetry}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={32}
-              step={1}
-              value={settings.symmetry}
-              onChange={(e) => handleSliderChange("symmetry", parseInt(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
-            />
-          </div>
-
-          {/* DENSITY */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700">Pattern Density</span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                {(settings.density * 100).toFixed(0)}%
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0.05}
-              max={1.0}
-              step={0.05}
-              value={settings.density}
-              onChange={(e) => handleSliderChange("density", parseFloat(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
-            />
-          </div>
-
-          {/* COMPLEXITY / LAYERS */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700">Layers / Complexity</span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                Detail level: {settings.complexity}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              step={1}
-              value={settings.complexity}
-              onChange={(e) => handleSliderChange("complexity", parseInt(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
-            />
-          </div>
-
-          {/* STROKE WIDTH */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700">Stroke Width</span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                {settings.strokeWidth} px
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0.5}
-              max={10.0}
-              step={0.1}
-              value={settings.strokeWidth}
-              onChange={(e) => handleSliderChange("strokeWidth", parseFloat(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
-            />
-          </div>
-
-          {/* SPACING */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700">Spacing / Offsets</span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                {settings.spacing.toFixed(2)}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0.0}
-              max={1.0}
-              step={0.02}
-              value={settings.spacing}
-              onChange={(e) => handleSliderChange("spacing", parseFloat(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
-            />
-          </div>
-
-          {/* ROTATION */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700">Global Rotation</span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                {settings.rotation}°
-              </span>
-            </div>
-            <input
-              type="range"
+        <PanelSection title="Form">
+          <SliderControl
+            label="Pattern Density"
+            value={settings.density}
+            display={`${(settings.density * 100).toFixed(0)}%`}
+            min={0.05}
+            max={1}
+            step={0.05}
+            onChange={(value) => handleSliderChange("density", value)}
+          />
+          <SliderControl
+            label="Spacing / Offsets"
+            value={settings.spacing}
+            display={settings.spacing.toFixed(2)}
+            min={0}
+            max={1}
+            step={0.02}
+            onChange={(value) => handleSliderChange("spacing", value)}
+          />
+          <SliderControl
+            label="Variation"
+            value={settings.variation}
+            display={`${(settings.variation * 100).toFixed(0)}%`}
+            min={0}
+            max={1}
+            step={0.01}
+            onChange={(value) => handleSliderChange("variation", value)}
+          />
+          <SliderControl
+            label="Phase"
+            value={settings.phase}
+            display={`${settings.phase}°`}
+            min={0}
+            max={360}
+            step={1}
+            onChange={(value) => handleSliderChange("phase", value)}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <SliderControl
+              label="Rotation"
+              value={settings.rotation}
+              display={`${settings.rotation}°`}
               min={0}
               max={360}
               step={5}
-              value={settings.rotation}
-              onChange={(e) => handleSliderChange("rotation", parseInt(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
+              onChange={(value) => handleSliderChange("rotation", value)}
+            />
+            <SliderControl
+              label="Scale"
+              value={settings.scale}
+              display={`x${settings.scale.toFixed(1)}`}
+              min={0.4}
+              max={2}
+              step={0.05}
+              onChange={(value) => handleSliderChange("scale", value)}
             />
           </div>
+        </PanelSection>
 
-          {/* SCALE */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-xs font-medium">
-              <span className="text-gray-700">Zoom Scale</span>
-              <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">
-                x{settings.scale.toFixed(1)}
+        <PanelSection title="Stroke">
+          <SliderControl
+            label="Stroke Width"
+            value={settings.strokeWidth}
+            display={`${settings.strokeWidth.toFixed(1)} px`}
+            min={0.5}
+            max={10}
+            step={0.1}
+            onChange={(value) => handleSliderChange("strokeWidth", value)}
+          />
+
+          <div className="grid grid-cols-3 gap-1 rounded-lg bg-gray-100 p-1">
+            {STROKE_STYLE_OPTIONS.map((style) => {
+              const isSelected = settings.strokeStyle === style.value;
+              return (
+                <button
+                  key={style.value}
+                  type="button"
+                  onClick={() => handleStrokeStyleChange(style.value)}
+                  className={`px-2 py-1.5 rounded-md text-xs font-semibold transition-smooth ${
+                    isSelected
+                      ? "bg-white text-black shadow-xs"
+                      : "text-gray-500 hover:text-black hover:bg-white/70"
+                  }`}
+                >
+                  {style.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-medium text-gray-800">Invert Canvas Theme</span>
+              <span className="text-[10px] text-gray-400 truncate">
+                {settings.inverted
+                  ? "Light strokes on dark background"
+                  : "Dark strokes on light background"}
               </span>
             </div>
-            <input
-              type="range"
-              min={0.4}
-              max={2.0}
-              step={0.05}
-              value={settings.scale}
-              onChange={(e) => handleSliderChange("scale", parseFloat(e.target.value))}
-              className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
-            />
-          </div>
-        </div>
 
-        {/* INVERSION SWITCH */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex flex-col">
-            <span className="text-xs font-medium text-gray-800">Invert Canvas Theme</span>
-            <span className="text-[10px] text-gray-400">
-              Light elements on dark (or vice versa)
-            </span>
+            <button
+              type="button"
+              onClick={() => onChange({ inverted: !settings.inverted })}
+              className="text-gray-600 hover:text-black transition-smooth shrink-0"
+            >
+              {settings.inverted ? (
+                <div className="flex items-center gap-1.5 bg-black text-white px-3 py-1.5 rounded-lg text-xs font-mono border border-gray-800">
+                  <span>Dark</span>
+                  <ToggleRight size={18} className="text-emerald-400" />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-mono border border-gray-200">
+                  <span>Light</span>
+                  <ToggleLeft size={18} />
+                </div>
+              )}
+            </button>
           </div>
-
-          <button
-            onClick={handleToggleSwap}
-            className="text-gray-600 hover:text-black transition-smooth"
-          >
-            {settings.inverted ? (
-              <div className="flex items-center gap-1.5 bg-black text-white px-3 py-1.5 rounded-lg text-xs font-mono border border-gray-800">
-                <span>Light on Dark</span>
-                <ToggleRight size={18} className="text-emerald-400" />
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-mono border border-gray-200">
-                <span>Dark on Light</span>
-                <ToggleLeft size={18} />
-              </div>
-            )}
-          </button>
-        </div>
+        </PanelSection>
       </div>
 
-      {/* 4. PRESETS EXPLORER */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs flex flex-col gap-4">
+      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-xs flex flex-col gap-4">
         <div className="flex items-center justify-between pb-1 border-b border-gray-50">
           <div className="flex items-center gap-2">
             <Bookmark size={18} className="text-black" />
@@ -389,19 +416,21 @@ export default function ControlPanel({
           </div>
         </div>
 
-        {/* Catalog mapping */}
         <div className="flex flex-col gap-2">
           {presets.map((preset) => (
             <button
               key={preset.id}
+              type="button"
               onClick={() => onLoadPreset(preset)}
-              className="group flex items-center justify-between p-2.5 rounded-xl border border-gray-100 hover:border-black hover:bg-gray-50/50 text-left transition-smooth"
+              className="group flex items-center justify-between p-2.5 rounded-lg border border-gray-100 hover:border-black hover:bg-gray-50/50 text-left transition-smooth"
             >
-              <div className="flex flex-col pr-2">
-                <span className="font-medium text-xs text-gray-900 group-hover:text-black">
+              <div className="flex flex-col pr-2 min-w-0">
+                <span className="font-medium text-xs text-gray-900 group-hover:text-black truncate">
                   {preset.name}
                 </span>
-                <span className="text-[9px] text-gray-400 leading-tight">{preset.description}</span>
+                <span className="text-[9px] text-gray-400 leading-tight line-clamp-2">
+                  {preset.description}
+                </span>
               </div>
               <ChevronRight
                 size={14}
@@ -411,43 +440,41 @@ export default function ControlPanel({
           ))}
         </div>
 
-        {/* CUSTOM PRESETS ZONE WITH SAVING ACTIONS */}
         <div className="mt-2 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center justify-between mb-3.5 gap-3">
             <span className="font-medium text-xs text-gray-700">My Custom Presets</span>
             <button
+              type="button"
               onClick={() => setShowSaveForm(!showSaveForm)}
-              className="text-xs text-black border-b border-black font-semibold hover:border-transparent transition-smooth pb-0.5"
+              className="text-xs text-black border-b border-black font-semibold hover:border-transparent transition-smooth pb-0.5 shrink-0"
             >
               {showSaveForm ? "Cancel" : "+ Save Preset"}
             </button>
           </div>
 
-          {/* Save preset form collapsible */}
           {showSaveForm && (
             <form
               onSubmit={handleCreatePreset}
-              className="flex gap-2 mb-4 bg-gray-50 p-2.5 rounded-xl border border-gray-100"
+              className="flex gap-2 mb-4 bg-gray-50 p-2.5 rounded-lg border border-gray-100"
             >
               <input
                 type="text"
                 required
                 value={newPresetName}
-                onChange={(e) => setNewPresetName(e.target.value)}
+                onChange={(event) => setNewPresetName(event.target.value)}
                 placeholder="My custom design name"
-                className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs placeholder:text-gray-400 focus:outline-hidden focus:border-black"
+                className="flex-1 min-w-0 px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs placeholder:text-gray-400 focus:outline-hidden focus:border-black"
               />
               <button
                 type="submit"
                 className="p-2 bg-black text-white hover:bg-gray-800 rounded-lg flex items-center gap-1.5 font-medium text-xs transition-smooth shrink-0"
               >
                 <Save size={12} />
-                Save Preset
+                Save
               </button>
             </form>
           )}
 
-          {/* User saved presets list rendering */}
           {userPresets.length === 0 ? (
             <p className="text-[10px] text-gray-400 italic py-2 text-center bg-gray-50/50 rounded-lg border border-dashed border-gray-150">
               No custom design presets saved locally yet.
@@ -457,15 +484,17 @@ export default function ControlPanel({
               {userPresets.map((preset) => (
                 <div
                   key={preset.id}
-                  className="flex items-center justify-between p-2 rounded-xl bg-gray-50/30 border border-gray-100 text-xs hover:border-gray-300 transition-smooth group"
+                  className="flex items-center justify-between p-2 rounded-lg bg-gray-50/30 border border-gray-100 text-xs hover:border-gray-300 transition-smooth group"
                 >
                   <button
+                    type="button"
                     onClick={() => onLoadPreset(preset)}
-                    className="flex-1 font-medium text-gray-700 text-left hover:text-black"
+                    className="flex-1 min-w-0 font-medium text-gray-700 text-left hover:text-black truncate"
                   >
                     {preset.name}
                   </button>
                   <button
+                    type="button"
                     onClick={() => onDeletePreset(preset.id)}
                     className="p-1 text-gray-300 hover:text-rose-600 transition-smooth rounded-md opacity-0 group-hover:opacity-100 flex items-center"
                     title="Delete preset"
