@@ -28,6 +28,7 @@ An interactive, web-based tool for creating, customizing, and exporting beautifu
 ### Local Development
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/ratpi-studio/svg-pattern-generator.git
    cd svg-pattern-generator
