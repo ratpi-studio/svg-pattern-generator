@@ -2,8 +2,7 @@
 
 **[View Live Demo](https://ratpi-studio.github.io/svg-pattern-generator/)**
 
-[![CI](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/ci.yml/badge.status)](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/ci.yml)
-[![Deploy to GitHub Pages](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/deploy.yml/badge.status)](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/deploy.yml)
+[![CI](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/ratpi-studio/svg-pattern-generator/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An interactive, web-based tool for creating, customizing, and exporting beautiful geometric vector patterns. Built with React, TypeScript, and powered by [VitePlus](https://viteplus.dev/).
