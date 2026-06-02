@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Sparkles, HelpCircle, Feather, CheckCircle2, AlertCircle } from "lucide-react";
+import { Sparkles, HelpCircle, Github, CheckCircle2, AlertCircle } from "lucide-react";
 import { PatternSettings, Preset } from "./types";
 import { PatternGenerator } from "./generator";
 import { DEMO_PRESETS } from "./presets";
@@ -170,6 +170,15 @@ export default function App() {
 
           {/* Quick Guidance Actions */}
           <div className="flex items-center gap-2.5">
+            <a
+              href="https://github.com/ratpi-studio/svg-pattern-generator"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3.5 py-2 hover:bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-2 text-xs font-semibold text-gray-700 transition-smooth"
+            >
+              <Github size={15} />
+              <span>GitHub</span>
+            </a>
             <button
               onClick={() => setShowHowTo(!showHowTo)}
               className="px-3.5 py-2 hover:bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-2 text-xs font-semibold text-gray-700 transition-smooth"
@@ -266,21 +275,6 @@ export default function App() {
           />
         </section>
       </main>
-
-      {/* MINIMAL FOOTER CRADLE */}
-      <footer className="w-full py-3 px-6 border-t border-gray-150/75 bg-white text-center text-xs text-gray-500 shrink-0">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 justify-center">
-            <Feather size={13} className="text-gray-400" />
-            <span>SVG Pattern Generator — Interactive geometric and generative art</span>
-          </div>
-          <div className="flex items-center gap-1 font-mono text-[10px]">
-            <span>
-              Engine Status: <strong className="text-gray-700">READY</strong>
-            </span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
