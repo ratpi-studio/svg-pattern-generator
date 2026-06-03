@@ -26,8 +26,10 @@ import {
 import { PatternSettings, PatternType, Preset, StrokeStyle } from "../types";
 import {
   PATTERN_TYPE_OPTIONS,
+  PatternSliderOption,
   STROKE_STYLE_OPTIONS,
-  getDefaultVariant,
+  getPatternControlProfile,
+  getPatternDefaultSettings,
   getPatternVariantOptions,
 } from "../settings";
 
@@ -90,6 +92,15 @@ function SliderControl({ label, value, display, min, max, step, onChange }: Slid
   );
 }
 
+function formatSliderValue(value: number, mode: PatternSliderOption["display"]): string {
+  if (mode === "percent") return `${(value * 100).toFixed(0)}%`;
+  if (mode === "fixed2") return value.toFixed(2);
+  if (mode === "degrees") return `${value}°`;
+  if (mode === "scale") return `x${value.toFixed(1)}`;
+  if (mode === "pixels") return `${value.toFixed(1)} px`;
+  return `${Math.round(value)}`;
+}
+
 function PanelSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-4">
@@ -116,13 +127,14 @@ export default function ControlPanel({
   const [showSaveForm, setShowSaveForm] = useState(false);
 
   const variantOptions = useMemo(() => getPatternVariantOptions(settings.type), [settings.type]);
+  const controlProfile = useMemo(() => getPatternControlProfile(settings.type), [settings.type]);
 
   const handleSliderChange = (key: keyof PatternSettings, value: number) => {
     onChange({ [key]: value });
   };
 
   const handlePatternChange = (type: PatternType) => {
-    onChange({ type, variant: getDefaultVariant(type) });
+    onChange(getPatternDefaultSettings(type, settings));
   };
 
   const handleStrokeStyleChange = (strokeStyle: StrokeStyle) => {
@@ -136,6 +148,19 @@ export default function ControlPanel({
     setNewPresetName("");
     setShowSaveForm(false);
   };
+
+  const renderSlider = (option: PatternSliderOption) => (
+    <SliderControl
+      key={option.key}
+      label={option.label}
+      value={settings[option.key]}
+      display={formatSliderValue(settings[option.key], option.display)}
+      min={option.min}
+      max={option.max}
+      step={option.step}
+      onChange={(value) => handleSliderChange(option.key, value)}
+    />
+  );
 
   return (
     <div className="flex flex-col gap-5 select-none pb-12">
@@ -255,105 +280,18 @@ export default function ControlPanel({
           </button>
         </div>
 
-        <PanelSection title="Structure">
-          <SliderControl
-            label="Repetitions / Branches"
-            value={settings.repetitions}
-            display={`${settings.repetitions}`}
-            min={3}
-            max={100}
-            step={1}
-            onChange={(value) => handleSliderChange("repetitions", value)}
-          />
-          <SliderControl
-            label="Symmetry Axes"
-            value={settings.symmetry}
-            display={`x${settings.symmetry}`}
-            min={1}
-            max={32}
-            step={1}
-            onChange={(value) => handleSliderChange("symmetry", value)}
-          />
-          <SliderControl
-            label="Layers / Complexity"
-            value={settings.complexity}
-            display={`${settings.complexity}`}
-            min={1}
-            max={10}
-            step={1}
-            onChange={(value) => handleSliderChange("complexity", value)}
-          />
-        </PanelSection>
+        {controlProfile.structure.length > 0 && (
+          <PanelSection title="Structure">
+            {controlProfile.structure.map(renderSlider)}
+          </PanelSection>
+        )}
 
-        <PanelSection title="Form">
-          <SliderControl
-            label="Pattern Density"
-            value={settings.density}
-            display={`${(settings.density * 100).toFixed(0)}%`}
-            min={0.05}
-            max={1}
-            step={0.05}
-            onChange={(value) => handleSliderChange("density", value)}
-          />
-          <SliderControl
-            label="Spacing / Offsets"
-            value={settings.spacing}
-            display={settings.spacing.toFixed(2)}
-            min={0}
-            max={1}
-            step={0.02}
-            onChange={(value) => handleSliderChange("spacing", value)}
-          />
-          <SliderControl
-            label="Variation"
-            value={settings.variation}
-            display={`${(settings.variation * 100).toFixed(0)}%`}
-            min={0}
-            max={1}
-            step={0.01}
-            onChange={(value) => handleSliderChange("variation", value)}
-          />
-          <SliderControl
-            label="Phase"
-            value={settings.phase}
-            display={`${settings.phase}°`}
-            min={0}
-            max={360}
-            step={1}
-            onChange={(value) => handleSliderChange("phase", value)}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <SliderControl
-              label="Rotation"
-              value={settings.rotation}
-              display={`${settings.rotation}°`}
-              min={0}
-              max={360}
-              step={5}
-              onChange={(value) => handleSliderChange("rotation", value)}
-            />
-            <SliderControl
-              label="Scale"
-              value={settings.scale}
-              display={`x${settings.scale.toFixed(1)}`}
-              min={0.4}
-              max={2}
-              step={0.05}
-              onChange={(value) => handleSliderChange("scale", value)}
-            />
-          </div>
-        </PanelSection>
+        {controlProfile.form.length > 0 && (
+          <PanelSection title="Form">{controlProfile.form.map(renderSlider)}</PanelSection>
+        )}
 
         <PanelSection title="Stroke">
-          <SliderControl
-            label="Stroke Width"
-            value={settings.strokeWidth}
-            display={`${settings.strokeWidth.toFixed(1)} px`}
-            min={0.5}
-            max={10}
-            step={0.1}
-            onChange={(value) => handleSliderChange("strokeWidth", value)}
-          />
+          {controlProfile.stroke.map(renderSlider)}
 
           <div className="grid grid-cols-3 gap-1 rounded-lg bg-gray-100 p-1">
             {STROKE_STYLE_OPTIONS.map((style) => {

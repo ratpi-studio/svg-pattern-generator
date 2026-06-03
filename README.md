@@ -9,12 +9,13 @@ An interactive, web-based tool for creating, customizing, and exporting beautifu
 
 ## ✨ Features
 
-- **9 Generative Algorithms**: Topography, Rosette, Mandala, Fractal, Tessellation, Grid, Radial, Symmetry, and Spirograph.
-- **Real-time Customization**: Adjust density, symmetry, complexity, stroke width, and spacing with live preview.
+- **12 Generative Algorithms**: Topography, Rosette, Mandala, Fractal, Tessellation, Grid, Radial, Symmetry, Spirograph, Guilloche, Woven, and Lattice.
+- **Pattern-aware Controls**: Adjust tuned sliders per algorithm family, with safer randomization ranges for each pattern type.
 - **Export Options**:
   - Copy SVG source code to clipboard.
   - Download high-resolution `.svg` (vector) files.
   - Download `.png` (raster) files.
+- **Shareable Patterns**: Copy a URL that restores the active pattern, variant, seed, and drawing parameters.
 - **Presets**: Choose from built-in demo presets or save your own custom designs.
 - **Responsive Workspace**: Works seamlessly across different screen sizes.
 

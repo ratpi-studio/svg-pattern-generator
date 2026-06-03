@@ -6,7 +6,7 @@ const SVG_COLOR_PATTERN = "#[0-9a-fA-F]{3,8}|rgba?\\([^)]*\\)|white|black";
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const detectBackgroundFill = (svgString: string): string => {
+export const detectBackgroundFill = (svgString: string): string => {
   const backgroundRectMatch = svgString.match(
     new RegExp(
       `<rect\\b(?=[^>]*\\bwidth="[^"]+")(?=[^>]*\\bheight="[^"]+")(?=[^>]*\\bfill="(${SVG_COLOR_PATTERN})")[^>]*>`,
@@ -28,12 +28,14 @@ const detectBackgroundFill = (svgString: string): string => {
 export function prepareSvgForTransparentExport(svgString: string): string {
   const backgroundFill = detectBackgroundFill(svgString);
   const backgroundColor = escapeRegExp(backgroundFill);
-  const backgroundFillMatcher = new RegExp(`fill="${backgroundColor}"`, "gi");
+  const backgroundRectMatcher = new RegExp(
+    `(<rect\\b(?=[^>]*\\bwidth="[^"]+")(?=[^>]*\\bheight="[^"]+")[^>]*\\bfill=")${backgroundColor}("[^>]*>)`,
+    "i",
+  );
 
   return svgString
     .replace(new RegExp(`background-color:\\s*${backgroundColor};?\\s*`, "gi"), "")
-    .replace(backgroundFillMatcher, 'fill="none"')
-    .replace(/\s(?:opacity|fill-opacity|stroke-opacity)="[^"]*"/g, "");
+    .replace(backgroundRectMatcher, "$1none$2");
 }
 
 /**
@@ -105,9 +107,7 @@ export function downloadPNG(
         }
 
         // Fill background first in matching color
-        const isInverted =
-          svgString.includes("background-color: #000000") || svgString.includes('fill="#000000"');
-        ctx.fillStyle = isInverted ? "#000000" : "#ffffff";
+        ctx.fillStyle = detectBackgroundFill(svgString);
         ctx.fillRect(0, 0, canvasSize, canvasSize);
 
         // Draw the vector image

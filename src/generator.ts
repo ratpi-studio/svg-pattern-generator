@@ -3,7 +3,7 @@
  * Handles math and node builders for all abstract geometric pattern types.
  */
 
-import { PatternSettings } from "./types";
+import { PatternSettings, PatternType } from "./types";
 import { PRNG } from "./prng";
 import { normalizePatternSettings } from "./settings";
 
@@ -99,10 +99,46 @@ const strokeAttrs = (
 const variantIs = (settings: PatternSettings, ...variants: string[]): boolean =>
   variants.includes(settings.variant);
 
+type PatternBuilder = (
+  settings: PatternSettings,
+  prng: PRNG,
+  cx: number,
+  cy: number,
+  stroke: string,
+  fill: string,
+) => string;
+
 /**
  * Main dispatcher class for patterns
  */
 export class PatternGenerator {
+  private static readonly builders: Record<PatternType, PatternBuilder> = {
+    rosace: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildRosace(settings, prng, cx, cy, stroke),
+    mandala: (settings, prng, cx, cy, stroke, fill) =>
+      PatternGenerator.buildMandala(settings, prng, cx, cy, stroke, fill),
+    fractal: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildFractal(settings, prng, cx, cy, stroke),
+    tessellation: (settings, prng, _cx, _cy, stroke, fill) =>
+      PatternGenerator.buildTessellation(settings, prng, stroke, fill),
+    grid: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildGeometricGrid(settings, prng, cx, cy, stroke),
+    radial: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildRadial(settings, prng, cx, cy, stroke),
+    symmetry: (settings, prng, cx, cy, stroke, fill) =>
+      PatternGenerator.buildSymmetry(settings, prng, cx, cy, stroke, fill),
+    generative: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildGenerative(settings, prng, cx, cy, stroke),
+    topography: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildTopography(settings, prng, cx, cy, stroke),
+    guilloche: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildGuilloche(settings, prng, cx, cy, stroke),
+    woven: (settings, prng, _cx, _cy, stroke, fill) =>
+      PatternGenerator.buildWoven(settings, prng, stroke, fill),
+    lattice: (settings, prng, cx, cy, stroke) =>
+      PatternGenerator.buildLattice(settings, prng, cx, cy, stroke),
+  };
+
   static generate(rawSettings: PatternSettings): string {
     const settings = normalizePatternSettings(rawSettings);
     const prng = new PRNG(settings.seed);
@@ -117,47 +153,14 @@ export class PatternGenerator {
     const scaleFactor = settings.scale;
     const baseRotation = settings.rotation;
 
-    // Build the inside content depends on the type
-    let pathsContent = "";
-
-    switch (settings.type) {
-      case "rosace":
-        pathsContent = this.buildRosace(settings, prng, cx, cy, strokeColor);
-        break;
-      case "mandala":
-        pathsContent = this.buildMandala(settings, prng, cx, cy, strokeColor, fillColor);
-        break;
-      case "fractal":
-        pathsContent = this.buildFractal(settings, prng, cx, cy, strokeColor);
-        break;
-      case "tessellation":
-        pathsContent = this.buildTessellation(settings, prng, strokeColor, fillColor);
-        break;
-      case "grid":
-        pathsContent = this.buildGeometricGrid(settings, prng, cx, cy, strokeColor);
-        break;
-      case "radial":
-        pathsContent = this.buildRadial(settings, prng, cx, cy, strokeColor);
-        break;
-      case "symmetry":
-        pathsContent = this.buildSymmetry(settings, prng, cx, cy, strokeColor, fillColor);
-        break;
-      case "generative":
-        pathsContent = this.buildGenerative(settings, prng, cx, cy, strokeColor);
-        break;
-      case "topography":
-        pathsContent = this.buildTopography(settings, prng, cx, cy, strokeColor);
-        break;
-      case "guilloche":
-        pathsContent = this.buildGuilloche(settings, prng, cx, cy, strokeColor);
-        break;
-      case "woven":
-        pathsContent = this.buildWoven(settings, prng, strokeColor, fillColor);
-        break;
-      case "lattice":
-        pathsContent = this.buildLattice(settings, prng, cx, cy, strokeColor);
-        break;
-    }
+    const pathsContent = this.builders[settings.type](
+      settings,
+      prng,
+      cx,
+      cy,
+      strokeColor,
+      fillColor,
+    );
 
     // Outer SVG structure with styles
     return `<svg 

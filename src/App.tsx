@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Sparkles, HelpCircle, Github, CheckCircle2, AlertCircle } from "lucide-react";
+import { Sparkles, HelpCircle, Github, CheckCircle2, AlertCircle, Share2 } from "lucide-react";
 import { PatternSettings, Preset } from "./types";
 import { PatternGenerator } from "./generator";
 import { DEMO_PRESETS } from "./presets";
@@ -8,15 +8,30 @@ import {
   PATTERN_TYPE_OPTIONS,
   PATTERN_VARIANTS,
   STROKE_STYLE_OPTIONS,
+  getPatternControlProfile,
+  getPatternDefaultSettings,
   normalizePatternSettings,
+  type PatternSliderOption,
 } from "./settings";
 import PatternPreview from "./components/PatternPreview";
 import ControlPanel from "./components/ControlPanel";
+import { createShareUrl, settingsFromSearch } from "./shareState";
 
 const LOCAL_STORAGE_KEY = "svg_pattern_custom_user_presets";
 
+const getInitialSettings = (): PatternSettings => {
+  if (typeof window === "undefined") return DEFAULT_PATTERN_SETTINGS;
+  return settingsFromSearch(window.location.search) ?? DEFAULT_PATTERN_SETTINGS;
+};
+
+const randomSliderValue = (option: PatternSliderOption): number => {
+  const raw = option.min + Math.random() * (option.max - option.min);
+  const steps = Math.round((raw - option.min) / option.step);
+  return Number((option.min + steps * option.step).toFixed(4));
+};
+
 export default function App() {
-  const [settings, setSettings] = useState<PatternSettings>(DEFAULT_PATTERN_SETTINGS);
+  const [settings, setSettings] = useState<PatternSettings>(getInitialSettings);
   const [userPresets, setUserPresets] = useState<Preset[]>([]);
   const [notification, setNotification] = useState<{
     message: string;
@@ -64,40 +79,55 @@ export default function App() {
 
   // Completely reset settings back to default parameters
   const handleResetSettings = () => {
-    setSettings(DEFAULT_PATTERN_SETTINGS);
-    triggerNotification("Settings reset to standard values.", "info");
+    setSettings((prev) => getPatternDefaultSettings(prev.type, prev));
+    triggerNotification("Pattern settings reset to tuned defaults.", "info");
   };
 
   // Fire fully random seeds and parameters
   const handleRandomizeAll = () => {
     const randomSeeds = Math.floor(Math.random() * 9999) + 1;
-    // Keep parameters balanced so randomization generates visually elegant motifs (guarantees quality)
     const types: PatternSettings["type"][] = PATTERN_TYPE_OPTIONS.map((option) => option.type);
     const chosenType = types[Math.floor(Math.random() * types.length)];
     const variants = PATTERN_VARIANTS[chosenType];
     const chosenVariant = variants[Math.floor(Math.random() * variants.length)].id;
     const strokeStyles = STROKE_STYLE_OPTIONS.map((option) => option.value);
+    const profile = getPatternControlProfile(chosenType);
+    const sliderValues = Object.fromEntries(
+      [...profile.structure, ...profile.form, ...profile.stroke].map((option) => [
+        option.key,
+        randomSliderValue(option),
+      ]),
+    ) as Partial<PatternSettings>;
+    const strokeStyle = strokeStyles[Math.floor(Math.random() * strokeStyles.length)];
 
-    setSettings({
-      type: chosenType,
-      repetitions: Math.floor(Math.random() * 40) + 6,
-      symmetry: Math.floor(Math.random() * 12) + 4,
-      density: parseFloat((Math.random() * 0.7 + 0.2).toFixed(2)),
-      strokeWidth: parseFloat((Math.random() * 3.5 + 1.0).toFixed(1)),
-      spacing: parseFloat((Math.random() * 0.6 + 0.1).toFixed(2)),
-      rotation: Math.floor(Math.random() * 180),
-      scale: parseFloat((Math.random() * 0.4 + 0.8).toFixed(2)),
-      complexity: Math.floor(Math.random() * 5) + 3,
-      variant: chosenVariant,
-      variation: parseFloat(Math.random().toFixed(2)),
-      phase: Math.floor(Math.random() * 360),
-      strokeStyle: strokeStyles[Math.floor(Math.random() * strokeStyles.length)],
-      seed: randomSeeds,
-      canvasSize: 800,
-      inverted: Math.random() > 0.65, // Randomly invert contrast
-    });
+    setSettings(
+      normalizePatternSettings({
+        ...getPatternDefaultSettings(chosenType, { strokeStyle }),
+        ...sliderValues,
+        type: chosenType,
+        variant: chosenVariant,
+        seed: randomSeeds,
+        canvasSize: 800,
+        inverted: Math.random() > 0.65,
+      }),
+    );
 
     triggerNotification("New random generative pattern activated!");
+  };
+
+  const handleCopyShareLink = async () => {
+    if (!navigator.clipboard) {
+      triggerNotification("Share link copy failed.", "info");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(createShareUrl(settings, window.location.href));
+      triggerNotification("Share link copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy share link:", err);
+      triggerNotification("Share link copy failed.", "info");
+    }
   };
 
   // Save customized layout to local storage
@@ -159,7 +189,7 @@ export default function App() {
                   SVG Pattern Generator
                 </h1>
                 <span className="text-[10px] bg-black text-white px-2 py-0.5 rounded-full font-mono">
-                  v1.4
+                  v1.4.0
                 </span>
               </div>
               <p className="text-xs text-gray-500 font-medium">
@@ -170,6 +200,14 @@ export default function App() {
 
           {/* Quick Guidance Actions */}
           <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleCopyShareLink}
+              className="px-3.5 py-2 hover:bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-2 text-xs font-semibold text-gray-700 transition-smooth"
+            >
+              <Share2 size={15} />
+              <span>Share</span>
+            </button>
             <a
               href="https://github.com/ratpi-studio/svg-pattern-generator"
               target="_blank"

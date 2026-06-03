@@ -5,6 +5,36 @@ export interface PatternVariantOption {
   label: string;
 }
 
+export type NumericPatternSettingKey =
+  | "repetitions"
+  | "symmetry"
+  | "density"
+  | "strokeWidth"
+  | "spacing"
+  | "rotation"
+  | "scale"
+  | "complexity"
+  | "variation"
+  | "phase";
+
+export type SliderDisplayMode = "integer" | "percent" | "fixed2" | "degrees" | "scale" | "pixels";
+
+export interface PatternSliderOption {
+  key: NumericPatternSettingKey;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  display: SliderDisplayMode;
+}
+
+export interface PatternControlProfile {
+  defaults: Partial<PatternSettings>;
+  structure: PatternSliderOption[];
+  form: PatternSliderOption[];
+  stroke: PatternSliderOption[];
+}
+
 export const PATTERN_TYPE_OPTIONS: {
   type: PatternType;
   label: string;
@@ -112,6 +142,196 @@ export const DEFAULT_PATTERN_SETTINGS: PatternSettings = {
   inverted: false,
 };
 
+const slider = (
+  key: NumericPatternSettingKey,
+  label: string,
+  min: number,
+  max: number,
+  step: number,
+  display: SliderDisplayMode,
+): PatternSliderOption => ({ key, label, min, max, step, display });
+
+const strokeControls = [
+  slider("strokeWidth", "Stroke Width", 0.5, 10, 0.1, "pixels"),
+] satisfies PatternSliderOption[];
+
+const phaseRotationScale = [
+  slider("phase", "Phase", 0, 360, 1, "degrees"),
+  slider("rotation", "Rotation", 0, 360, 5, "degrees"),
+  slider("scale", "Scale", 0.4, 2, 0.05, "scale"),
+] satisfies PatternSliderOption[];
+
+export const PATTERN_CONTROL_PROFILES: Record<PatternType, PatternControlProfile> = {
+  topography: {
+    defaults: { repetitions: 44, symmetry: 4, density: 0.6, spacing: 0.36, complexity: 6 },
+    structure: [
+      slider("repetitions", "Contour / Stream Count", 12, 80, 1, "integer"),
+      slider("symmetry", "Flow Mode Bias", 1, 12, 1, "integer"),
+      slider("complexity", "Field Attractors", 2, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Relief Density", 0.15, 1, 0.05, "percent"),
+      slider("spacing", "Field Spacing", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Organic Distortion", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  rosace: {
+    defaults: DEFAULT_PATTERN_SETTINGS,
+    structure: [
+      slider("repetitions", "Petal Count", 3, 48, 1, "integer"),
+      slider("symmetry", "Support Axes", 3, 24, 1, "integer"),
+      slider("complexity", "Nested Rings", 1, 8, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Overlap Density", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Petal Offset", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Ring Drift", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  mandala: {
+    defaults: { repetitions: 18, symmetry: 12, density: 0.52, spacing: 0.24, complexity: 6 },
+    structure: [
+      slider("symmetry", "Petal Sectors", 4, 32, 1, "integer"),
+      slider("complexity", "Ring Layers", 2, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Detail Density", 0.15, 1, 0.05, "percent"),
+      slider("spacing", "Petal Spread", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Layer Drift", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  fractal: {
+    defaults: { repetitions: 8, symmetry: 6, density: 0.56, spacing: 0.34, complexity: 5 },
+    structure: [
+      slider("symmetry", "Radial Arms", 3, 18, 1, "integer"),
+      slider("complexity", "Branch Depth", 2, 7, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Branch Density", 0.15, 1, 0.05, "percent"),
+      slider("spacing", "Fork Angle", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Branch Jitter", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  tessellation: {
+    defaults: { repetitions: 24, symmetry: 4, density: 0.5, spacing: 0.42, complexity: 4 },
+    structure: [slider("complexity", "Tile Motif Levels", 1, 8, 1, "integer")],
+    form: [
+      slider("density", "Tile Fill Density", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Tile Size", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Tile Alternation", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  grid: {
+    defaults: { repetitions: 20, symmetry: 8, density: 0.62, spacing: 0.3, complexity: 5 },
+    structure: [
+      slider("symmetry", "Radial Guides", 4, 32, 1, "integer"),
+      slider("complexity", "Guide Connections", 1, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Grid Resolution", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Draft Offset", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Line Drift", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  radial: {
+    defaults: { repetitions: 34, symmetry: 10, density: 0.68, spacing: 0.48, complexity: 6 },
+    structure: [
+      slider("repetitions", "Rays / Spiral Arms", 8, 80, 1, "integer"),
+      slider("complexity", "Coil Detail", 1, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Moiré Density", 0.05, 1, 0.05, "percent"),
+      slider("spacing", "Interference Offset", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Radius Wobble", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  symmetry: {
+    defaults: { repetitions: 8, symmetry: 8, density: 0.72, spacing: 0.16, complexity: 6 },
+    structure: [
+      slider("symmetry", "Mirror Sectors", 3, 32, 1, "integer"),
+      slider("complexity", "Polygon Nodes", 2, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Seal Fill", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Sector Spread", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Node Randomness", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  generative: {
+    defaults: { repetitions: 40, symmetry: 7, density: 0.46, spacing: 0.7, complexity: 7 },
+    structure: [
+      slider("symmetry", "Gear Ratio", 3, 16, 1, "integer"),
+      slider("complexity", "Curve Resolution", 2, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Inner Gear Size", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Pen Offset", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Orbit Breathing", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  guilloche: {
+    defaults: { repetitions: 44, symmetry: 14, density: 0.58, spacing: 0.34, complexity: 7 },
+    structure: [
+      slider("repetitions", "Curve Resolution", 12, 100, 1, "integer"),
+      slider("symmetry", "Lobe Families", 4, 32, 1, "integer"),
+      slider("complexity", "Engraving Layers", 3, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Wave Amplitude", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Ribbon Offset", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Epicycle Drift", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  woven: {
+    defaults: { repetitions: 34, symmetry: 8, density: 0.72, spacing: 0.38, complexity: 5 },
+    structure: [
+      slider("repetitions", "Band Count Bias", 5, 80, 1, "integer"),
+      slider("complexity", "Diagonal Detail", 1, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Weave Density", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Band Thickness", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Thread Wave", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+  lattice: {
+    defaults: { repetitions: 26, symmetry: 10, density: 0.64, spacing: 0.32, complexity: 6 },
+    structure: [
+      slider("symmetry", "Star Vertices", 5, 24, 1, "integer"),
+      slider("complexity", "Crystal Detail", 1, 10, 1, "integer"),
+    ],
+    form: [
+      slider("density", "Node Density", 0.1, 1, 0.05, "percent"),
+      slider("spacing", "Cell Size", 0, 1, 0.02, "fixed2"),
+      slider("variation", "Node Jitter", 0, 1, 0.01, "percent"),
+      ...phaseRotationScale,
+    ],
+    stroke: strokeControls,
+  },
+};
+
 const patternTypes = new Set<PatternType>(PATTERN_TYPE_OPTIONS.map((option) => option.type));
 const strokeStyles = new Set<StrokeStyle>(STROKE_STYLE_OPTIONS.map((option) => option.value));
 
@@ -163,3 +383,20 @@ export function normalizePatternSettings(
     inverted: typeof raw.inverted === "boolean" ? raw.inverted : DEFAULT_PATTERN_SETTINGS.inverted,
   };
 }
+
+export const getPatternControlProfile = (type: PatternType): PatternControlProfile =>
+  PATTERN_CONTROL_PROFILES[type];
+
+export const getPatternDefaultSettings = (
+  type: PatternType,
+  carry: Partial<PatternSettings> = {},
+): PatternSettings =>
+  normalizePatternSettings({
+    ...DEFAULT_PATTERN_SETTINGS,
+    ...PATTERN_CONTROL_PROFILES[type].defaults,
+    type,
+    variant: getDefaultVariant(type),
+    seed: carry.seed ?? DEFAULT_PATTERN_SETTINGS.seed,
+    strokeStyle: carry.strokeStyle ?? DEFAULT_PATTERN_SETTINGS.strokeStyle,
+    inverted: carry.inverted ?? DEFAULT_PATTERN_SETTINGS.inverted,
+  });

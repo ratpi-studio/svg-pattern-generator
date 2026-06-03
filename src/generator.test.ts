@@ -9,6 +9,9 @@ import {
 import { PatternSettings, PatternType } from "./types";
 
 const allTypes = PATTERN_TYPE_OPTIONS.map((option) => option.type);
+const allTypeVariants = PATTERN_TYPE_OPTIONS.flatMap((option) =>
+  PATTERN_VARIANTS[option.type].map((variant) => [option.type, variant.id] as const),
+);
 
 const makeSettings = (
   type: PatternType,
@@ -43,6 +46,11 @@ const expectValidSvg = (svg: string) => {
 describe("PatternGenerator", () => {
   it.each(allTypes)("generates valid SVG for %s", (type) => {
     const svg = PatternGenerator.generate(makeSettings(type));
+    expectValidSvg(svg);
+  });
+
+  it.each(allTypeVariants)("generates valid SVG for %s/%s", (type, variant) => {
+    const svg = PatternGenerator.generate(makeSettings(type, { variant }));
     expectValidSvg(svg);
   });
 
